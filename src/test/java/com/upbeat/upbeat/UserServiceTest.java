@@ -1,7 +1,7 @@
 package com.upbeat.upbeat;
 
 import com.upbeat.upbeat.domain.user.dto.UserLoginRequestDto;
-import com.upbeat.upbeat.domain.user.dto.UserResponseDto;
+import com.upbeat.upbeat.domain.user.dto.UserLoginResponseDto;
 import com.upbeat.upbeat.domain.user.dto.UserSignupRequestDto;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
@@ -27,9 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.AssertionErrors.assertEquals;
 
-@SpringBootTest
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -47,7 +45,8 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    void signup_success() {
+    void 회원가입_성공() {
+        // given: 신규 유저 DTO
         UserSignupRequestDto dto = new UserSignupRequestDto();
         dto.setUserId("newuser");
         dto.setPassword("password");
@@ -56,18 +55,22 @@ class UserServiceTest {
         when(userRepository.findByUserId("newuser")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
+        // when
         userService.signup(dto);
 
+        // then: 저장이 호출됨
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void signup_duplicateUserId_throwsException() {
+    void 회원가입_아이디중복_예외발생() {
+        // given: 이미 존재하는 아이디
         UserSignupRequestDto dto = new UserSignupRequestDto();
         dto.setUserId("existinguser");
 
         when(userRepository.findByUserId("existinguser")).thenReturn(Optional.of(new User()));
 
+        // when & then: 예외 발생
         CustomException exception = assertThrows(CustomException.class, () -> {
             userService.signup(dto);
         });
@@ -76,12 +79,14 @@ class UserServiceTest {
     }
 
     @Test
-    void login_success() {
+    void 로그인_성공() {
+        // given: 정상 유저 및 비밀번호
         UserLoginRequestDto dto = new UserLoginRequestDto();
         dto.setUserId("testuser");
         dto.setPassword("password");
 
         User user = User.builder()
+                .id(1L)
                 .userId("testuser")
                 .password("encodedPassword")
                 .nickname("닉네임")
@@ -91,20 +96,24 @@ class UserServiceTest {
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(jwtUtil.generateToken("testuser")).thenReturn("token123");
 
-        UserResponseDto response = userService.login(dto);
+        // when
+        UserLoginResponseDto response = userService.login(dto);
 
+        // then: 반환값 확인
         assertEquals(user.getId(), response.getUserId());
         assertEquals(user.getNickname(), response.getNickname());
         assertEquals("token123", response.getToken());
     }
 
     @Test
-    void login_userNotFound_throwsException() {
+    void 로그인_존재하지않는아이디_예외발생() {
+        // given: 존재하지 않는 유저 ID
         UserLoginRequestDto dto = new UserLoginRequestDto();
         dto.setUserId("notexist");
 
         when(userRepository.findByUserId("notexist")).thenReturn(Optional.empty());
 
+        // when & then: 예외 발생
         CustomException exception = assertThrows(CustomException.class, () -> {
             userService.login(dto);
         });
@@ -113,7 +122,8 @@ class UserServiceTest {
     }
 
     @Test
-    void login_invalidPassword_throwsException() {
+    void 로그인_비밀번호불일치_예외발생() {
+        // given: 비밀번호 틀린 상황
         UserLoginRequestDto dto = new UserLoginRequestDto();
         dto.setUserId("testuser");
         dto.setPassword("wrongpassword");
@@ -127,11 +137,11 @@ class UserServiceTest {
         when(userRepository.findByUserId("testuser")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongpassword", "encodedPassword")).thenReturn(false);
 
+        // when & then: 예외 발생
         CustomException exception = assertThrows(CustomException.class, () -> {
             userService.login(dto);
         });
 
         assertEquals(ErrorCode.INVALID_PASSWORD, exception.getErrorCode());
     }
-
 }
