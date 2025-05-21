@@ -2,7 +2,8 @@ package com.upbeat.upbeat.domain.user.service;
 
 import com.upbeat.upbeat.domain.user.dto.UserLoginRequestDto;
 import com.upbeat.upbeat.domain.user.dto.UserSignupRequestDto;
-import com.upbeat.upbeat.domain.user.dto.UserResponseDto;
+import com.upbeat.upbeat.domain.user.dto.UserLoginResponseDto;
+import com.upbeat.upbeat.domain.user.dto.UserSignupResponseDto;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
 import com.upbeat.upbeat.global.exception.CustomException;
@@ -20,7 +21,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public void signup(UserSignupRequestDto dto) {
+    public UserSignupResponseDto signup(UserSignupRequestDto dto) {
         // 중복 사용자 아이디 체크
         if (userRepository.findByUserId(dto.getUserId()).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATE_USER_ID);
@@ -37,9 +38,10 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+        return new UserSignupResponseDto(user.getId(), user.getNickname(), "회원가입이 완료되었습니다.");
     }
 
-    public UserResponseDto login(UserLoginRequestDto dto) {
+    public UserLoginResponseDto login(UserLoginRequestDto dto) {
         // 사용자 조회, 없으면 예외
         User user = userRepository.findByUserId(dto.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -52,6 +54,6 @@ public class UserService {
         // 토큰 생성 및 DTO 반환
         String token = jwtUtil.generateToken(user.getUserId());
 
-        return new UserResponseDto(user.getId(), user.getNickname(), token);
+        return new UserLoginResponseDto(user.getId(), user.getNickname(), token);
     }
 }
