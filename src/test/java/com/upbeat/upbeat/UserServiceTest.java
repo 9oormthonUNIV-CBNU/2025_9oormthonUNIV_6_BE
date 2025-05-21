@@ -1,0 +1,137 @@
+package com.upbeat.upbeat;
+
+import com.upbeat.upbeat.domain.user.dto.UserLoginRequestDto;
+import com.upbeat.upbeat.domain.user.dto.UserResponseDto;
+import com.upbeat.upbeat.domain.user.dto.UserSignupRequestDto;
+import com.upbeat.upbeat.domain.user.entity.User;
+import com.upbeat.upbeat.domain.user.repository.UserRepository;
+import com.upbeat.upbeat.domain.user.service.UserService;
+import com.upbeat.upbeat.global.exception.CustomException;
+import com.upbeat.upbeat.global.exception.type.ErrorCode;
+import com.upbeat.upbeat.global.security.JwtUtil;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.AssertionErrors.assertEquals;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @InjectMocks
+    private UserService userService;
+
+    @Test
+    void signup_success() {
+        UserSignupRequestDto dto = new UserSignupRequestDto();
+        dto.setUserId("newuser");
+        dto.setPassword("password");
+        dto.setNickname("닉네임");
+
+        when(userRepository.findByUserId("newuser")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+
+        userService.signup(dto);
+
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void signup_duplicateUserId_throwsException() {
+        UserSignupRequestDto dto = new UserSignupRequestDto();
+        dto.setUserId("existinguser");
+
+        when(userRepository.findByUserId("existinguser")).thenReturn(Optional.of(new User()));
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            userService.signup(dto);
+        });
+
+        assertEquals(ErrorCode.DUPLICATE_USER_ID, exception.getErrorCode());
+    }
+
+    @Test
+    void login_success() {
+        UserLoginRequestDto dto = new UserLoginRequestDto();
+        dto.setUserId("testuser");
+        dto.setPassword("password");
+
+        User user = User.builder()
+                .userId("testuser")
+                .password("encodedPassword")
+                .nickname("닉네임")
+                .build();
+
+        when(userRepository.findByUserId("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(jwtUtil.generateToken("testuser")).thenReturn("token123");
+
+        UserResponseDto response = userService.login(dto);
+
+        assertEquals(user.getId(), response.getUserId());
+        assertEquals(user.getNickname(), response.getNickname());
+        assertEquals("token123", response.getToken());
+    }
+
+    @Test
+    void login_userNotFound_throwsException() {
+        UserLoginRequestDto dto = new UserLoginRequestDto();
+        dto.setUserId("notexist");
+
+        when(userRepository.findByUserId("notexist")).thenReturn(Optional.empty());
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            userService.login(dto);
+        });
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void login_invalidPassword_throwsException() {
+        UserLoginRequestDto dto = new UserLoginRequestDto();
+        dto.setUserId("testuser");
+        dto.setPassword("wrongpassword");
+
+        User user = User.builder()
+                .userId("testuser")
+                .password("encodedPassword")
+                .nickname("닉네임")
+                .build();
+
+        when(userRepository.findByUserId("testuser")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongpassword", "encodedPassword")).thenReturn(false);
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            userService.login(dto);
+        });
+
+        assertEquals(ErrorCode.INVALID_PASSWORD, exception.getErrorCode());
+    }
+
+}

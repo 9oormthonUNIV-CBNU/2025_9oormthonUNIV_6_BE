@@ -1,0 +1,35 @@
+package com.upbeat.upbeat.global.exception;
+
+import com.upbeat.upbeat.global.exception.type.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 커스텀 예외 처리 (중복 아이디, 로그인 실패 등)
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(ex.getErrorCode().getStatus()));
+    }
+
+    // @Valid 유효성 검사 실패 시 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.BAD_REQUEST, "입력 값이 올바르지 않습니다.");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 기타 예상치 못한 예외 처리
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        ex.printStackTrace(); // 개발 중 디버깅용 (운영 환경에선 로그 처리)
+        ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
