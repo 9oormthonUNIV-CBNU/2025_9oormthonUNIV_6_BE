@@ -25,7 +25,7 @@ public class UserSignupRequestDto {
     @Email(message = "올바른 이메일 형식이어야 합니다.")
     private String email;
 
-    @Pattern(regexp = "^\\d{10,11}$", message = "전화번호는 숫자 10~11자리여야 합니다.")
+    @Pattern(regexp = "^\\d{11}$", message = "전화번호는 숫자 11자리여야 합니다.")
     private String phone;
 
     private String region;
