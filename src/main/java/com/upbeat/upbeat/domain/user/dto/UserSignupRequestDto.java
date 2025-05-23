@@ -12,11 +12,17 @@ import lombok.Setter;
 public class UserSignupRequestDto {
 
     @NotBlank(message = "아이디는 필수입니다.")
-    @Size(min = 4, max = 20, message = "아이디는 4~20자 사이여야 합니다.")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,20}$",
+            message = "아이디는 영문과 숫자를 포함한 4~20자여야 하며, 다른 문자는 포함될 수 없습니다."
+    )
     private String userId;
 
     @NotBlank(message = "비밀번호는 필수입니다.")
-    @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$",
+            message = "비밀번호는 영문과 숫자를 포함한 8~16자여야 하며, 특수문자는 사용할 수 없습니다."
+    )
     private String password;
 
     @NotBlank(message = "닉네임은 필수입니다.")
@@ -30,3 +36,4 @@ public class UserSignupRequestDto {
 
     private String region;
 }
+
