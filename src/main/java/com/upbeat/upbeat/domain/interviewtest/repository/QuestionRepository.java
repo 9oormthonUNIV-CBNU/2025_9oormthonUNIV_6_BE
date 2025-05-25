@@ -2,6 +2,12 @@ package com.upbeat.upbeat.domain.interviewtest.repository;
 
 import com.upbeat.upbeat.domain.interviewtest.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-}//JpaRepository<T, ID>에서 T는 관리할 엔티티 클래스의 타입, ID는 그 엔티티의 PK타입이다.
+
+    @Query("SELECT DISTINCT q FROM Question q JOIN FETCH q.options")
+    List<Question> findAllDistinct(); // 중복 제거 + 연관 객체 Fetch
+}

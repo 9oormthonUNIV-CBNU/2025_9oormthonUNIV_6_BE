@@ -1,5 +1,6 @@
 package com.upbeat.upbeat.domain.user.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -8,8 +9,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Schema(description = "로그인 요청 DTO")
 public class UserLoginRequestDto {
 
+    @Schema(description = "아이디 (영문 + 숫자 4~20자)", example = "test1234")
     @NotBlank(message = "아이디는 필수입니다.")
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,20}$",
@@ -17,6 +20,7 @@ public class UserLoginRequestDto {
     )
     private String userId;
 
+    @Schema(description = "비밀번호 (영문 + 숫자 8~16자)", example = "pass1234")
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$",

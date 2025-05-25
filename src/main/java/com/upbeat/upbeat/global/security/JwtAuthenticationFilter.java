@@ -1,17 +1,14 @@
 package com.upbeat.upbeat.global.security;
 
+import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
-import com.upbeat.upbeat.global.exception.CustomException;
-import com.upbeat.upbeat.global.exception.type.ErrorCode;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import com.upbeat.upbeat.global.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -31,7 +28,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/api/users/signup") || path.equals("/api/users/login");
+        return path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.equals("/api/users/signup") ||
+                path.equals("/api/users/login");
     }
 
     @Override
@@ -42,39 +42,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);  // ❗비인증 요청은 그냥 통과시킴 (403 아님)
+            filterChain.doFilter(request, response);
             return;
         }
 
         String token = authHeader.substring(7);
 
-        try {
-            if (!jwtUtil.validateToken(token)) {
-                throw new CustomException(ErrorCode.INVALID_TOKEN);
+        if (!jwtUtil.validateToken(token)) {
+            log.warn("유효하지 않은 JWT: {}", token);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+            return;
+        }
+
+        String username = jwtUtil.extractUsername(token);
+
+        userRepository.findByUserId(username).ifPresent(user -> {
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                CustomUserDetails userDetails = new CustomUserDetails(user);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        });
 
-            String username = jwtUtil.extractUsername(token);
-            userRepository.findByUserId(username).ifPresent(user -> {
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    CustomUserDetails userDetails = new CustomUserDetails(user);
-                    var auth = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
-            });
-
-            filterChain.doFilter(request, response);
-
-        } catch (ExpiredJwtException e) {
-            log.warn("JWT 만료: {}", e.getMessage());
-            throw new CustomException(ErrorCode.TOKEN_EXPIRED);
-        }
-        catch (JwtException | IllegalArgumentException e) {
-            log.warn("JWT 에러: {}", e.getMessage());
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
-        }
-
+        filterChain.doFilter(request, response);
     }
-
 }

@@ -47,8 +47,6 @@ dependencies {
 
 	implementation 'org.slf4j:slf4j-api'
 	implementation 'org.springframework.boot:spring-boot-starter-logging'
-
-	implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.0.2'
 }
 
 tasks.named('test') {

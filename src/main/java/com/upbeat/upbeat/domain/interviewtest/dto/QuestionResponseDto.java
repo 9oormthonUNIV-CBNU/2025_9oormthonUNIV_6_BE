@@ -16,7 +16,7 @@ public class QuestionResponseDto {
 
     public static QuestionResponseDto from(Question question) {
         List<OptionResponseDto> options = question.getOptions().stream()
-                .map(opt -> new OptionResponseDto(opt.getId(), opt.getLabel(), opt.getContent(), opt.getTypeCode()))
+                .map(opt -> new OptionResponseDto(opt.getId(), opt.getLabel(), opt.getContent()))
                 .toList();
 
         return new QuestionResponseDto(question.getId(), question.getQuestion(), options);

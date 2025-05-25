@@ -21,8 +21,8 @@ public class OptionService {
                 .map(opt -> new OptionResponseDto(
                         opt.getId(),
                         opt.getLabel(),
-                        opt.getContent(),
-                        opt.getTypeCode()
+                        opt.getContent()
+
                 ))
                 .toList();
     }

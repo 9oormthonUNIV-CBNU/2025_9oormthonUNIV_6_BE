@@ -10,5 +10,4 @@ public class OptionResponseDto {
     private Long id;
     private String label;
     private String content;
-    private String typeCode;
 }
