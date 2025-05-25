@@ -16,11 +16,10 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
 
     public List<QuestionResponseDto> getAllQuestions() {
-        List<Question> questions = questionRepository.findAll();
-
+        List<Question> questions = questionRepository.findAllDistinct();  // 수정된 부분
         return questions.stream()
                 .map(QuestionResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
     /*
     stream을 통해 변환처리를 위한 흐름 생성 -> map을 통해 각 질문을 DTO로 변환 ->collect를 통해 변환된 DTO들을 리스트로 묶음

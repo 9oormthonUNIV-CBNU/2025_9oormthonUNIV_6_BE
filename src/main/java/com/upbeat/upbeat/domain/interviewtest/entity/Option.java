@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name="options")
@@ -19,9 +20,10 @@ public class Option {
 
     private String content; // 보기 텍스트
 
-    private String typeCode; // 유형 분류용 태그
+    //private String typeCode; // 유형 분류용 태그
 
     @ManyToOne
     @JoinColumn(name="question_id")
+    @JsonIgnore
     private Question question;
 }
