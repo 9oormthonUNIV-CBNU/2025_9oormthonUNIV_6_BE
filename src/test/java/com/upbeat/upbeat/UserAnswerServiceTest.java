@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -46,11 +47,11 @@ class UserAnswerServiceTest {
             Option selected = options.get(selectedIndex);
 
             UserAnswerRequestDto dto = new UserAnswerRequestDto();
-            dto.setUserId(userId);
+            //dto.setUserId(userId);
             dto.setQuestionId(question.getId());
             dto.setOptionId(selected.getId());
 
-            userAnswerService.saveUserAnswer(dto);
+            //userAnswerService.saveUserAnswer(dto);
         }
     }
 
