@@ -43,17 +43,20 @@ class UserAnswerServiceTest {
             Question question = questions.get(i);
             List<Option> options = question.getOptions();
 
-            int selectedIndex = abPattern.charAt(i) == 'A' ? 0 : 1;
-            Option selected = options.get(selectedIndex);
+            String desiredLabel = String.valueOf(abPattern.charAt(i));
+            Option selected = options.stream()
+                    .filter(o -> o.getLabel().equals(desiredLabel))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("해당 label 옵션이 없습니다: " + desiredLabel));
 
             UserAnswerRequestDto dto = new UserAnswerRequestDto();
-            //dto.setUserId(userId);
             dto.setQuestionId(question.getId());
             dto.setOptionId(selected.getId());
 
-            //userAnswerService.saveUserAnswer(dto);
+            userAnswerService.saveUserAnswer(dto, userId);
         }
     }
+
 
     @Test
     void TYPE1_두루뭉술_낭만가형() {
