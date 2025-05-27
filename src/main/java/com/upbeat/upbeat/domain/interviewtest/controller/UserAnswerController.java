@@ -5,7 +5,9 @@ import com.upbeat.upbeat.domain.interviewtest.dto.UserAnswerRequestDto;
 import com.upbeat.upbeat.domain.interviewtest.dto.UserAnswerResponseDto;
 import com.upbeat.upbeat.domain.interviewtest.entity.UserAnswer;
 import com.upbeat.upbeat.domain.interviewtest.service.UserAnswerService;
+import com.upbeat.upbeat.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +21,10 @@ public class UserAnswerController {
 
     //사용자 응답 저장 api
     @PostMapping
-    public void submitAnswer(@RequestBody UserAnswerRequestDto dto) {
-        userAnswerService.saveUserAnswer(dto);
+    public UserAnswerResponseDto submitAnswer(@RequestBody UserAnswerRequestDto dto,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        return userAnswerService.saveUserAnswer(dto, userId);
     }
 
     //사용자 응답 전체조회 api
