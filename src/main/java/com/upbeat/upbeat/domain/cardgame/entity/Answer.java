@@ -19,17 +19,18 @@ import java.util.List;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
+@Table(name="answers")
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="answer_id")
-    private BigInteger id;
+    private Long id;
     @Column(nullable = false,length=30)
     private String content; //내용
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt; //생성일시
-    private BigInteger likes; //좋아요
+    private int likes; //좋아요
 
     @ManyToOne
     @JoinColumn(name="user_id",nullable = false)
@@ -48,15 +49,12 @@ public class Answer {
     public static Answer createAnswer(AnswerRequestDto dto, Card card, User user, Strategy strategy) {
         if(dto.getCardId() != card.getId()) throw new IllegalArgumentException("CardAnswer cardId must be the same");
 
-        return new Answer(
-                null,
-                dto.getContent(),
-                null,
-                BigInteger.ZERO,
-                user,
-                card,
-                strategy,
-                new ArrayList<>()
-        );
+        Answer answer = new Answer();
+        answer.setContent(dto.getContent());
+        answer.setLikes(0);
+        answer.setStrategy(strategy);
+        answer.setCard(card);
+        answer.setUser(user);
+        return answer;
     }
 }

@@ -13,11 +13,12 @@ import java.math.BigInteger;
 @Entity
 @Getter
 @Setter
+@Table(name="strategies",uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "card_id"})})
 public class Strategy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="strategy_id")
-    private BigInteger id;
+    private Long id;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AnswerStrategy strategy; //전략
@@ -38,12 +39,10 @@ public class Strategy {
         String strategy = dto.getStrategy();
         AnswerStrategy enumStrategy = AnswerStrategy.fromDescription(strategy);
 
-        return new Strategy(
-                null,
-                enumStrategy,
-                user,
-                card,
-                null
-        );
+        Strategy strategyEntity = new Strategy();
+        strategyEntity.setStrategy(enumStrategy);
+        strategyEntity.setUser(user);
+        strategyEntity.setCard(card);
+        return strategyEntity;
     }
 }
