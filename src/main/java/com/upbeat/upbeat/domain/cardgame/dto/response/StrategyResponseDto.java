@@ -1,21 +1,21 @@
 package com.upbeat.upbeat.domain.cardgame.dto.response;
 
 import com.upbeat.upbeat.domain.cardgame.entity.Strategy;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Getter
+@Setter
 public class StrategyResponseDto {
-//    private BigInteger id;
+//    private Long id;
 //    private String strategy;
 //    private Long userId;
-//    private BigInteger cardId;
+//    private Long cardId;
 //    private Answer answer;
+    @Schema(description = "메세지", example="전략이 등록되었습니다.")
     private String message;
 
     public static StrategyResponseDto createStrategyDto(Strategy strategy) {

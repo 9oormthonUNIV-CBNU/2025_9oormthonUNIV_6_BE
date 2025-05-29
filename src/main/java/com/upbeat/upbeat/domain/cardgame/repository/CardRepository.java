@@ -8,10 +8,10 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface CardRepository extends JpaRepository<Card, BigInteger> {
+public interface CardRepository extends JpaRepository<Card, Long> {
     @Override
     ArrayList<Card> findAll(); //모든 데이터 찾기 위한 문장
 
-    @Query(value = "SELECT * FROM card ORDER BY RAND() LIMIT 6", nativeQuery = true)
-    List<Card> findRandomCards();
+    @Query(value = "SELECT card_id FROM cards ORDER BY RAND() LIMIT 6", nativeQuery = true)
+    List<Long> findRandomCards();
 }

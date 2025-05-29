@@ -11,16 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public interface LikeRepository extends JpaRepository<Like, BigInteger> {
+public interface LikeRepository extends JpaRepository<Like, Long> {
     @Override
     ArrayList<Like> findAll();
 
-    BigInteger countByAnswerId(BigInteger answerId);
+    int countByAnswerId(Long answerId);
 
-    List<Like> user(User user);
+    @Query(value = "SELECT * FROM likes WHERE answer_id = :answerId AND user_id = :userId", nativeQuery = true)
+    Optional<Like> findByAnswerIdAndUserId(Long answerId, Long userId);
 
-    BigInteger answer(Answer answer);
-
-    @Query(value = "SELECT * FROM like WHERE answer_id = :answerId AND user_id = :userId", nativeQuery = true)
-    Optional<Like> findByAnwerIdAndUserId(BigInteger answerId, Long userId);
+    boolean existsByUserIdAndAnswerId(Long userId, Long answerId);
 }

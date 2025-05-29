@@ -10,6 +10,7 @@ import com.upbeat.upbeat.domain.cardgame.repository.CardRepository;
 import com.upbeat.upbeat.domain.cardgame.repository.StrategyRepository;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class StrategyService {
     @Autowired
     private StrategyRepository repository;
@@ -29,7 +31,7 @@ public class StrategyService {
     @Autowired
     private AnswerRepository answerRepository;
 
-    public List<CSARDtosStrategyDto> show(BigInteger id){
+    public List<CSARDtosStrategyDto> show(Long id){
         return repository.findByCardId(id)
                 .stream()
                 .map(strategy -> CSARDtosStrategyDto.create(strategy))
@@ -37,7 +39,7 @@ public class StrategyService {
     }
 
     @Transactional
-    public StrategyResponseDto create(BigInteger cardId, StrategyRequestDto dto,Long userId){
+    public StrategyResponseDto create(Long cardId, StrategyRequestDto dto,Long userId){
         Card card = cardRepository.findById(cardId).orElseThrow(()->new IllegalArgumentException("전략 생성 실패."+"대상 게시글이 없습니다."));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));

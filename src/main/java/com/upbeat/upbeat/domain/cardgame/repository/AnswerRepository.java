@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.math.BigInteger;
 import java.util.List;
 
-public interface AnswerRepository extends JpaRepository<Answer, BigInteger> {
-    @Query(value = "SELECT * FROM card_answer WHERE card_id = :id", nativeQuery = true)
-    List<Answer> findByCardId(BigInteger id);
+public interface AnswerRepository extends JpaRepository<Answer, Long> {
+    @Query(value = "SELECT * FROM answers WHERE card_id = :id", nativeQuery = true)
+    List<Answer> findByCardId(Long id);
 }
