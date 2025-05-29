@@ -9,6 +9,8 @@ import com.upbeat.upbeat.domain.interviewtest.entity.UserAnswer;
 import com.upbeat.upbeat.domain.interviewtest.repository.OptionRepository;
 import com.upbeat.upbeat.domain.interviewtest.repository.QuestionRepository;
 import com.upbeat.upbeat.domain.interviewtest.repository.UserAnswerRepository;
+import com.upbeat.upbeat.global.exception.CustomException;
+import com.upbeat.upbeat.global.exception.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +54,11 @@ public class UserAnswerService {
 
     public String calculateResultType(Long userId) {
         List<UserAnswer> answers = userAnswerRepository.findByUserId(userId);
+
+        if (answers.size() < 10) {
+            throw new CustomException(ErrorCode.NOT_ENOUGH_ANSWERS);
+        }
+
         int aCount = 0;
         int bCount = 0;
         Map<Integer, String> answerMap = new HashMap<>();
@@ -97,6 +104,7 @@ public class UserAnswerService {
     public Map<String, String> getRedirectUrlByUserResult(Long userId) {
         String typeCode = calculateResultType(userId);
         String redirectUrl = "/results/" + typeCode.toLowerCase() + ".html";
+
         Map<String, String> result = new HashMap<>();
         result.put("redirectUrl", redirectUrl);
         return result;

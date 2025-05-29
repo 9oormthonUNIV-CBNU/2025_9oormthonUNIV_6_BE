@@ -12,6 +12,7 @@ public enum ErrorCode {
     DUPLICATE_USER_ID(400, "C002", "이미 존재하는 아이디입니다."),
     INVALID_INPUT_VALUE(400, "C003", "입력 값이 올바르지 않습니다."),
     INVALID_PASSWORD(400, "U003", "비밀번호가 올바르지 않습니다."),
+    NOT_ENOUGH_ANSWERS(400, "U004", "10문항 중 일부에 응답하지 않았습니다."),
 
     // 401 UNAUTHORIZED
     UNAUTHORIZED(401, "A001", "인증되지 않은 사용자입니다."),
