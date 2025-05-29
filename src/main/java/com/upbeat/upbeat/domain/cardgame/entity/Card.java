@@ -19,16 +19,17 @@ import java.util.List;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
+@Table(name="cards")
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="card_id", nullable = false)
-    private BigInteger id;
+    private Long id;
 
     @Column(nullable = false,length=30)
     private String questionContent; //질문내용
     @Column(nullable = false,length=30)
-    private String company; //기업명
+    private String companyName; //기업명
     @Column(nullable = false,length=30)
     private String job; //직무
     @ElementCollection(fetch = FetchType.EAGER)
@@ -52,25 +53,18 @@ public class Card {
     @OneToMany(mappedBy = "card")
     private List<Answer> answerList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "card")
-    private List<CheckedCard> checkedCardList = new ArrayList<>();
-
     public static Card createCard(CardRequestDto dto, User user) {
         String strategy = dto.getStrategy();
         AnswerStrategy enumStrategy = AnswerStrategy.fromDescription(strategy);
 
-        return new Card(
-                null,
-                dto.getQuestionContent(),
-                dto.getCompanyName(),
-                dto.getJob(),
-                dto.getStatus(),
-                enumStrategy,
-                dto.getAnswerContent(),
-                null,
-                user,
-                new ArrayList<>(),
-                new ArrayList<>()
-        );
+        Card card = new Card();
+        card.setQuestionContent(dto.getQuestionContent());
+        card.setCompanyName(dto.getCompanyName());
+        card.setJob(dto.getJob());
+        card.setStatusKeyword(dto.getStatus());
+        card.setStrategy(enumStrategy);
+        card.setAnswerContent(dto.getAnswerContent());
+        card.setUser(user);
+        return card;
     }
 }
