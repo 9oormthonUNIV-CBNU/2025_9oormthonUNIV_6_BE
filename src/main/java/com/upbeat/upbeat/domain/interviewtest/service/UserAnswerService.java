@@ -28,23 +28,26 @@ public class UserAnswerService {
     private final ResultTypeService resultTypeService;
 
     //사용자 응답 저장
-    public void saveUserAnswer(UserAnswerRequestDto dto) {
-        boolean alreadyExists = userAnswerRepository.existsByUserIdAndQuestionId(dto.getUserId(), dto.getQuestionId());
+    public UserAnswerResponseDto saveUserAnswer(UserAnswerRequestDto dto, Long userId) {
+        boolean alreadyExists = userAnswerRepository.existsByUserIdAndQuestionId(userId, dto.getQuestionId());
         if (alreadyExists) {
             throw new IllegalStateException("이미 해당 질문에 답변했습니다. 중복 저장은 불가능합니다.");
         }
-        Question question =  questionRepository.findById(dto.getQuestionId())
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 질문입니다."));
+
+        Question question = questionRepository.findById(dto.getQuestionId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 질문입니다."));
         Option option = optionRepository.findById(dto.getOptionId())
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 보기입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 보기입니다."));
 
         UserAnswer userAnswer = new UserAnswer();
-        userAnswer.setUserId(dto.getUserId());
+        userAnswer.setUserId(userId); // 🔥 dto.getUserId()는 절대 쓰지 않음
         userAnswer.setQuestion(question);
         userAnswer.setOption(option);
 
-        userAnswerRepository.save(userAnswer);
+        UserAnswer saved = userAnswerRepository.save(userAnswer);
+        return UserAnswerResponseDto.from(saved);
     }
+
     //사용자 응답 조회
     public List<UserAnswerResponseDto> getUserAnswerDtos(Long userId) {
         return userAnswerRepository.findByUserId(userId).stream()
