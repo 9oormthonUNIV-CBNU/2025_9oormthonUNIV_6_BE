@@ -29,7 +29,6 @@ public class CardRequestDto {
     @Pattern(regexp = "^.{0,30}$", message = "30자 이하로 입력해주세요.")
     private String job;
     @Schema(description = "상황 키워드", example="[\"자유로운\",\"다대일\",\"긍정적\"]")
-    @NotBlank(message = "상황 키워드는 필수입니다.")
     private List<Status> status;
 
     @Schema(description = "답변 전략", example="공손하게 회피")

@@ -1,24 +1,24 @@
 package com.upbeat.upbeat.domain.cardgame.dto.response;
 
 import com.upbeat.upbeat.domain.cardgame.entity.Answer;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Getter
+@Setter
 public class AnswerResponseDto {
-//    private BigInteger id;
+//    private Long id;
 //    private String content;
 //    private LocalDateTime createdAt;
-//    private BigInteger likes;
+//    private Long likes;
 //    private Long userId;
-//    private BigInteger cardId;
-//    private BigInteger strategyId;
+//    private Long cardId;
+//    private Long strategyId;
 //    private List<Like> likesList;
+    @Schema(description = "메세지", example="답변이 등록되었습니다.")
     private String message;
 
     public static AnswerResponseDto createAnswerDto(Answer answer) {
@@ -31,7 +31,7 @@ public class AnswerResponseDto {
 //                answer.getCard().getId(),
 //                answer.getStrategy().getId(),
 //                answer.getLikesList()
-                "전략이 등록되었습니다."
+                "답변이 등록되었습니다."
         );
     }
 }

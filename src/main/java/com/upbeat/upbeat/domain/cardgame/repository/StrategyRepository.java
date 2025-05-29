@@ -8,10 +8,10 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
-public interface StrategyRepository extends JpaRepository<Strategy, BigInteger> {
-    @Query(value = "SELECT * FROM strategy WHERE card_id = :id", nativeQuery = true)
-    List<Strategy> findByCardId(BigInteger id);
+public interface StrategyRepository extends JpaRepository<Strategy, Long> {
+    @Query(value = "SELECT * FROM strategies WHERE card_id = :id", nativeQuery = true)
+    List<Strategy> findByCardId(Long id);
 
-    @Query(value = "SELECT * FROM strategy WHERE user_id = :userId AND card_id = :cardId", nativeQuery = true)
-    Optional<Strategy> findByUserIdAndCardId(Long userId, BigInteger cardId);
+    @Query(value = "SELECT * FROM strategies WHERE user_id = :userId AND card_id = :cardId", nativeQuery = true)
+    Optional<Strategy> findByUserIdAndCardId(Long userId, Long cardId);
 }

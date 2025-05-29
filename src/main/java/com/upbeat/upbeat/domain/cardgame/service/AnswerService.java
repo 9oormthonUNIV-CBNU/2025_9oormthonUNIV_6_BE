@@ -11,6 +11,7 @@ import com.upbeat.upbeat.domain.cardgame.repository.CardRepository;
 import com.upbeat.upbeat.domain.cardgame.repository.StrategyRepository;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AnswerService {
     @Autowired
     private AnswerRepository answerRepository;
@@ -30,7 +32,7 @@ public class AnswerService {
     @Autowired
     private StrategyRepository strategyRepository;
 
-    public List<CSARDtosAnswerDto> show(BigInteger id){
+    public List<CSARDtosAnswerDto> show(Long id){
         return answerRepository.findByCardId(id)
                 .stream()
                 .map(answer -> CSARDtosAnswerDto.create(answer))
@@ -38,7 +40,7 @@ public class AnswerService {
     }
 
     @Transactional
-    public AnswerResponseDto create(BigInteger cardId, AnswerRequestDto dto,Long userId){
+    public AnswerResponseDto create(Long cardId, AnswerRequestDto dto,Long userId){
         Card card = cardRepository.findById(cardId).orElseThrow(()->new IllegalArgumentException("댓글 생성 실패."+"대상 게시글이 없습니다."));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
