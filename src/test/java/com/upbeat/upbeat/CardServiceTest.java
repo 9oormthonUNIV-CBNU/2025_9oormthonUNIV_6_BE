@@ -8,12 +8,19 @@ import com.upbeat.upbeat.domain.cardgame.service.AnswerService;
 import com.upbeat.upbeat.domain.cardgame.service.CardService;
 import com.upbeat.upbeat.domain.cardgame.service.LikeService;
 import com.upbeat.upbeat.domain.cardgame.service.StrategyService;
+import com.upbeat.upbeat.domain.user.dto.UserLoginRequestDto;
+import com.upbeat.upbeat.domain.user.dto.UserLoginResponseDto;
+import com.upbeat.upbeat.domain.user.dto.UserSignupRequestDto;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
+import com.upbeat.upbeat.domain.user.service.UserService;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,86 +35,89 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @Transactional
 public class CardServiceTest {
-    @Autowired
+    @Mock
     private CardRepository cardRepository;
-    @Autowired
+    @Mock
     private UserRepository userRepository;
-    @Autowired
+    @Mock
     private AnswerRepository answerRepository;
-    @Autowired
+    @Mock
     private LikeRepository likeRepository;
-    @Autowired
+    @Mock
     private StrategyRepository strategyRepository;
 
-    @Autowired
+    @InjectMocks
     private CardService cardService;
-    @Autowired
+    @InjectMocks
     private AnswerService answerService;
-    @Autowired
+    @InjectMocks
     private LikeService likeService;
-    @Autowired
+    @InjectMocks
     private StrategyService strategyService;
+    @InjectMocks
+    private UserService userService;
 
-    private User user;
+    @BeforeEach
+    void setUp() {
+        for(int i=0;i<3;i++) {
+            UserSignupRequestDto signupRequestDto = new UserSignupRequestDto();
+            signupRequestDto.setUserId("newuser");
+            signupRequestDto.setPassword("password");
+            signupRequestDto.setNickname("닉네임");
+            userService.signup(signupRequestDto);
 
-//    @BeforeEach
-//    void setUp() {
-//        user = new User(1L,"abcd1234","abcd1234","청주","충북대","010-1234-1234","abcd1234@gmail.com");
-//        userRepository.save(user);
-//    }
-//
-//    @Test
-//    void 카드_생성() {
-//        CardRequestDto dto = new CardRequestDto();
-//        dto.setQuestionContent("장점을 말해주세요");
-//        dto.setCompanyName("카카오");
-//        dto.setJob("백엔드");
-//        dto.setStatus(List.of(Status.긍정적, Status.다대일));
-//        dto.setStrategy("공손하게 회피");
-//        dto.setAnswerContent("성실함이 장점입니다");
-//
-//        CardResponseDto response = cardService.create(dto, user.getId());
-//
-//        assertThat(response.getMessage()).isEqualTo("질문 등록 완료");
-//    }
-//
-//    @Test
-//    void 답변_생성() {
-//        CardRequestDto dto = new CardRequestDto();
-//        dto.setQuestionContent("단점을 말해주세요");
-//        dto.setCompanyName("네이버");
-//        dto.setJob("프론트엔드");
-//        dto.setStatus(List.of(Status.부정적));
-//        dto.setStrategy("질문 재확인 후 답변");
-//        dto.setAnswerContent("완벽주의입니다");
-//
-//        CardResponseDto card = cardService.create(dto, user.getId());
-//
-//        AnswerRequestDto answerDto = new AnswerRequestDto();
-//        answerDto.setContent("완벽주의가 단점이지만 장점이기도 합니다");
-//
-//        AnswerResponseDto answer = answerService.create(card.getCardId(), answerDto, user.getId());
-//
-//        assertThat(answer.getMessage()).isEqualTo("답변이 등록되었습니다.");
-//    }
-//
-//    @Test
-//    void 전략_생성() {
-//        CardRequestDto dto = new CardRequestDto();
-//        dto.setQuestionContent("협업 경험은?");
-//        dto.setCompanyName("배달의민족");
-//        dto.setJob("기획");
-//        dto.setStatus(List.of(Status.자유로운));
-//        dto.setStrategy("정면 돌파");
-//        dto.setAnswerContent("충돌이 있어도 소통으로 해결합니다");
-//
-//        CardResponseDto card = cardService.create(dto, user.getId());
-//
-//        StrategyRequestDto strategyDto = new StrategyRequestDto();
-//        strategyDto.setStrategy("정면 돌파");
-//
-//        StrategyResponseDto strategy = strategyService.create(card.getCardId(), strategyDto, user.getId());
-//
-//        assertThat(strategy.getMessage()).isEqualTo("전략이 등록되었습니다.");
-//    }
+            UserLoginRequestDto loginRequestDto = new UserLoginRequestDto();
+            loginRequestDto.setUserId("testuser");
+            loginRequestDto.setPassword("password");
+            userService.login(loginRequestDto);
+        }
+    }
+
+    @Test
+    @DisplayName("좋아요 3개 누르기")
+    public void IncreaseLike() {
+        int likes =3;
+
+        List<Status> statusList = Arrays.asList(Status.자유로운,Status.긍정적,Status.다대일);
+        CardRequestDto cardRequestDto = new CardRequestDto("동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?","카카오","글로벌마케팅",statusList,"","");
+        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,1L);
+
+        StrategyRequestDto strategyRequestDto = new StrategyRequestDto("공손하게 회피",1L);
+        StrategyResponseDto strategy = strategyService.create(1L,strategyRequestDto,1L);
+
+        AnswerRequestDto answerRequestDto = new AnswerRequestDto("잘 모르겠습니다.",1L);
+        AnswerResponseDto answer = answerService.create(1L,answerRequestDto, 1L);
+
+        LikeResponseDto like = new LikeResponseDto();
+        for(Long i=0L;i<3L;i++){
+            LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
+            like = likeService.create(likeRequestDto, i);
+        }
+
+        assertThat(like.getLikes()).isEqualTo(likes);
+    }
+
+    @Test
+    @DisplayName("좋아요 3개 누르고 1개 취소")
+    public void DecreaseLike() {
+        int likes =2;
+
+        List<Status> statusList = Arrays.asList(Status.자유로운,Status.긍정적,Status.다대일);
+        CardRequestDto cardRequestDto = new CardRequestDto("동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?","카카오","글로벌마케팅",statusList,"","");
+        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,1L);
+
+        StrategyRequestDto strategyRequestDto = new StrategyRequestDto("공손하게 회피",1L);
+        StrategyResponseDto strategy = strategyService.create(1L,strategyRequestDto,1L);
+
+        AnswerRequestDto answerRequestDto = new AnswerRequestDto("잘 모르겠습니다.",1L);
+        AnswerResponseDto answer = answerService.create(1L,answerRequestDto, 1L);
+
+        for(Long i=0L;i<3L;i+=1L){
+            LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
+            likeService.create(likeRequestDto, i);
+        }
+        LikeResponseDto like =like = likeService.delete(1L,2L);
+
+        assertThat(like.getLikes()).isEqualTo(likes);
+    }
 }
