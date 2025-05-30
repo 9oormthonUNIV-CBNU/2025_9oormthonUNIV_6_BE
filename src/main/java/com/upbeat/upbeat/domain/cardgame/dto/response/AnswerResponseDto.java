@@ -19,11 +19,12 @@ public class AnswerResponseDto {
 //    private Long strategyId;
 //    private List<Like> likesList;
     @Schema(description = "메세지", example="답변이 등록되었습니다.")
+    private Long answerId;
     private String message;
 
     public static AnswerResponseDto createAnswerDto(Answer answer) {
         return new AnswerResponseDto(
-//                answer.getId(),
+                    answer.getId(),
 //                answer.getContent(),
 //                answer.getCreatedAt(),
 //                answer.getLikes(),

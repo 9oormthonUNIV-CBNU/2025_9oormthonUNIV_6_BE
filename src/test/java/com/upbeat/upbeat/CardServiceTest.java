@@ -14,6 +14,8 @@ import com.upbeat.upbeat.domain.user.dto.UserSignupRequestDto;
 import com.upbeat.upbeat.domain.user.entity.User;
 import com.upbeat.upbeat.domain.user.repository.UserRepository;
 import com.upbeat.upbeat.domain.user.service.UserService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,41 +37,36 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @Transactional
 public class CardServiceTest {
-    @Mock
-    private CardRepository cardRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private AnswerRepository answerRepository;
-    @Mock
-    private LikeRepository likeRepository;
-    @Mock
-    private StrategyRepository strategyRepository;
-
-    @InjectMocks
+    //InjectMocks
+    @Autowired
     private CardService cardService;
-    @InjectMocks
+    @Autowired
     private AnswerService answerService;
-    @InjectMocks
+    @Autowired
     private LikeService likeService;
-    @InjectMocks
+    @Autowired
     private StrategyService strategyService;
-    @InjectMocks
+    @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         for(int i=0;i<3;i++) {
-            UserSignupRequestDto signupRequestDto = new UserSignupRequestDto();
-            signupRequestDto.setUserId("newuser");
-            signupRequestDto.setPassword("password");
-            signupRequestDto.setNickname("닉네임");
-            userService.signup(signupRequestDto);
+            String userId = "user"+i;
+            if (userRepository.findByUserId(userId).isEmpty()) {
+                UserSignupRequestDto signupRequestDto = new UserSignupRequestDto();
+                signupRequestDto.setUserId(userId);
+                signupRequestDto.setPassword("password");
+                signupRequestDto.setNickname("닉네임" + i);
+                userService.signup(signupRequestDto);
+            }
 
-            UserLoginRequestDto loginRequestDto = new UserLoginRequestDto();
-            loginRequestDto.setUserId("testuser");
-            loginRequestDto.setPassword("password");
-            userService.login(loginRequestDto);
+            userRepository.flush();
+            entityManager.clear();
         }
     }
 
@@ -78,20 +75,39 @@ public class CardServiceTest {
     public void IncreaseLike() {
         int likes =3;
 
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            User user = User.builder()
+                    .userId("testuser" + i)
+                    .password("password")
+                    .nickname("테스터" + i)
+                    .build();
+            userRepository.save(user);
+            users.add(user);
+        }
+
+        User writer = users.get(0);
+        Long writerId = writer.getId();
+
         List<Status> statusList = Arrays.asList(Status.자유로운,Status.긍정적,Status.다대일);
-        CardRequestDto cardRequestDto = new CardRequestDto("동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?","카카오","글로벌마케팅",statusList,"","");
-        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,1L);
+        CardRequestDto cardRequestDto = new CardRequestDto(
+                "동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?",
+                "카카오","글로벌마케팅",
+                statusList,
+                "공손하게 회피",""
+        );
+        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,writerId);
 
-        StrategyRequestDto strategyRequestDto = new StrategyRequestDto("공손하게 회피",1L);
-        StrategyResponseDto strategy = strategyService.create(1L,strategyRequestDto,1L);
+        strategyService.create(cardResponseDto.getCardId(),
+                new StrategyRequestDto("공손하게 회피", cardResponseDto.getCardId()), writerId);
 
-        AnswerRequestDto answerRequestDto = new AnswerRequestDto("잘 모르겠습니다.",1L);
-        AnswerResponseDto answer = answerService.create(1L,answerRequestDto, 1L);
+        AnswerResponseDto answer = answerService.create(cardResponseDto.getCardId(),
+                new AnswerRequestDto("잘 모르겠습니다.", cardResponseDto.getCardId()),
+                writerId);
 
-        LikeResponseDto like = new LikeResponseDto();
-        for(Long i=0L;i<3L;i++){
-            LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
-            like = likeService.create(likeRequestDto, i);
+        LikeResponseDto like = null;
+        for (User liker : users) {
+            like = likeService.create(new LikeRequestDto(answer.getAnswerId()), liker.getId());
         }
 
         assertThat(like.getLikes()).isEqualTo(likes);
@@ -102,21 +118,40 @@ public class CardServiceTest {
     public void DecreaseLike() {
         int likes =2;
 
-        List<Status> statusList = Arrays.asList(Status.자유로운,Status.긍정적,Status.다대일);
-        CardRequestDto cardRequestDto = new CardRequestDto("동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?","카카오","글로벌마케팅",statusList,"","");
-        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,1L);
-
-        StrategyRequestDto strategyRequestDto = new StrategyRequestDto("공손하게 회피",1L);
-        StrategyResponseDto strategy = strategyService.create(1L,strategyRequestDto,1L);
-
-        AnswerRequestDto answerRequestDto = new AnswerRequestDto("잘 모르겠습니다.",1L);
-        AnswerResponseDto answer = answerService.create(1L,answerRequestDto, 1L);
-
-        for(Long i=0L;i<3L;i+=1L){
-            LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
-            likeService.create(likeRequestDto, i);
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            User user = User.builder()
+                    .userId("testuser" + i)
+                    .password("password")
+                    .nickname("테스터" + i)
+                    .build();
+            userRepository.save(user);
+            users.add(user);
         }
-        LikeResponseDto like =like = likeService.delete(1L,2L);
+
+        User writer = users.get(0);
+        Long writerId = writer.getId();
+
+        List<Status> statusList = Arrays.asList(Status.자유로운,Status.긍정적,Status.다대일);
+        CardRequestDto cardRequestDto = new CardRequestDto(
+                "동기들 중 본인이 가장 낫다고 생각한 점은 무엇인가요?",
+                "카카오","글로벌마케팅",
+                statusList,
+                "공손하게 회피","");
+        CardResponseDto cardResponseDto = cardService.create(cardRequestDto,writerId);
+
+        strategyService.create(cardResponseDto.getCardId(),
+                new StrategyRequestDto("공손하게 회피", cardResponseDto.getCardId()), writerId);
+
+        AnswerResponseDto answer = answerService.create(cardResponseDto.getCardId(),
+                new AnswerRequestDto("잘 모르겠습니다.", cardResponseDto.getCardId()),
+                writerId
+        );
+
+        for (User user : users) {
+            likeService.create(new LikeRequestDto(answer.getAnswerId()), user.getId());
+        }
+        LikeResponseDto like = likeService.delete(answer.getAnswerId(), users.get(2).getId());
 
         assertThat(like.getLikes()).isEqualTo(likes);
     }
