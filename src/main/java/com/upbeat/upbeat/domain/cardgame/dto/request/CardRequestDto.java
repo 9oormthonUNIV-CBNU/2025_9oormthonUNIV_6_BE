@@ -33,7 +33,7 @@ public class CardRequestDto {
 
     @Schema(description = "답변 전략", example="공손하게 회피")
     private String strategy;
-    @Schema(description = "답변 내용", example="동기마다 강점이 달라 조심스럽습니다. 저는 성장하는 자세가 강점입니다.")
+    @Schema(description = "답변 내용", example="동기마다 강점이 달라 조심스럽습니다.")
     @Pattern(regexp = "^.{0,30}$", message = "30자 이하로 입력해주세요.")
     private String answerContent;
 
