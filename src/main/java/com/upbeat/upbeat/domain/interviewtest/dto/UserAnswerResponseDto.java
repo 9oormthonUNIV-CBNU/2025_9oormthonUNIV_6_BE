@@ -18,7 +18,7 @@ public class UserAnswerResponseDto {
     public static UserAnswerResponseDto from(UserAnswer ua) {
         return new UserAnswerResponseDto(
                 ua.getId(),
-                ua.getUserId(),
+                ua.getUser().getId(),
                 ua.getQuestion().getId(),
                 ua.getQuestion().getQuestion(),
                 ua.getOption().getId(),
