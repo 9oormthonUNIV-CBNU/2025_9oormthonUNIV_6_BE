@@ -9,6 +9,10 @@ import com.upbeat.upbeat.domain.interviewtest.entity.UserAnswer;
 import com.upbeat.upbeat.domain.interviewtest.repository.OptionRepository;
 import com.upbeat.upbeat.domain.interviewtest.repository.QuestionRepository;
 import com.upbeat.upbeat.domain.interviewtest.repository.UserAnswerRepository;
+import com.upbeat.upbeat.domain.user.entity.User;
+import com.upbeat.upbeat.domain.user.repository.UserRepository;
+import com.upbeat.upbeat.global.exception.CustomException;
+import com.upbeat.upbeat.global.exception.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +28,7 @@ public class UserAnswerService {
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
     private final ResultTypeService resultTypeService;
+    private final UserRepository userRepository;
 
     //사용자 응답 저장
     public UserAnswerResponseDto saveUserAnswer(UserAnswerRequestDto dto, Long userId) {
@@ -38,7 +43,9 @@ public class UserAnswerService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 보기입니다."));
 
         UserAnswer userAnswer = new UserAnswer();
-        userAnswer.setUserId(userId); // 🔥 dto.getUserId()는 절대 쓰지 않음
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        userAnswer.setUser(user);
         userAnswer.setQuestion(question);
         userAnswer.setOption(option);
 
@@ -55,6 +62,11 @@ public class UserAnswerService {
 
     public String calculateResultType(Long userId) {
         List<UserAnswer> answers = userAnswerRepository.findByUserId(userId);
+
+        if (answers.size() < 10) {
+            throw new CustomException(ErrorCode.NOT_ENOUGH_ANSWERS);
+        }
+
         int aCount = 0;
         int bCount = 0;
         Map<Integer, String> answerMap = new HashMap<>();
@@ -100,6 +112,7 @@ public class UserAnswerService {
     public Map<String, String> getRedirectUrlByUserResult(Long userId) {
         String typeCode = calculateResultType(userId);
         String redirectUrl = "/results/" + typeCode.toLowerCase() + ".html";
+
         Map<String, String> result = new HashMap<>();
         result.put("redirectUrl", redirectUrl);
         return result;
